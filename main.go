@@ -17,14 +17,14 @@ func main() {
 		text := string(content)
 		var output string
 
-		file,_ := os.Create(outfilename)
+		file, _ := os.Create(outfilename)
 
 		output += process(text, output, 0)
 		output = puncCheck(output)
 		output = quoteCheck(output)
 		output = grammarCheck(output)
 
-		_,err := file.WriteString(output)
+		_, err := file.WriteString(output)
 		if err != nil {
 			panic(err)
 		}
@@ -50,19 +50,6 @@ func getOption(s string, begin int) (string, string, int) {
 	}
 	return text, option, b
 }
-
-// func convertHex(s string, idx int) string {
-// 	base := "0123456789ABCDEF"
-
-// 	var hex string
-// 	for i := idx - 2; i > 0; i-- {
-// 		if s[i] == ' ' {
-// 			hex = s[i : idx-1]
-// 			s = s[:i] + strconv.Itoa(piscine.AtoiBase(hex, base)) + s[:idx-1]
-// 		}
-// 	}
-// 	return s
-// }
 
 func getIndexRange(s string, nword int) []int {
 	words := strings.Split(s, " ")
@@ -194,7 +181,7 @@ func addSpaceBetweenString(s string, index int) string {
 func quoteCheck(content string) string {
 	isOpenQuote := true
 	for i, v := range content {
-		if i > 0 && i < len(content)-1{
+		if i > 0 && i < len(content)-1 {
 			last := content[i-1]
 			next := content[i+1]
 			isQuote := v == '\'' || v == '"'
@@ -203,28 +190,28 @@ func quoteCheck(content string) string {
 					content = addSpaceBetweenString(content, i-1)
 					i++
 				}
-				if isOpenQuote && next == ' '{
+				if isOpenQuote && next == ' ' {
 					content = RemoveStringElem(content, i+1)
 				}
 				isOpenQuote = !isOpenQuote
 			}
-			}
-			
+		}
+
 	}
 	return content
 }
 
 func grammarCheck(content string) string {
-	words := strings.Split(content," ")
-	chars := []string{"a", "e", "i", "o", "u","a", "h"}
+	words := strings.Split(content, " ")
+	chars := []string{"a", "e", "i", "o", "u", "a", "h"}
 
 	for i, v := range words {
 		v = strings.ToLower(v)
-		if v == "a" && isIn(chars,string(words[i+1][0])) {
+		if v == "a" && isIn(chars, string(words[i+1][0])) {
 			words[i] += "n"
 		}
 	}
-	return strings.Join(words," ")
+	return strings.Join(words, " ")
 }
 
 func isIn(arr []string, val string) bool {
