@@ -10,14 +10,24 @@ func main() {
 
 	args := os.Args
 
-	if len(args) != 3 {
+	if len(args) == 3 {
 		filename := args[1]
+		outfilename := args[2]
 		content, _ := os.ReadFile(filename)
 		text := string(content)
 		var output string
 
+		file,_ := os.Create(outfilename)
+
 		output += process(text, output, 0)
 		output = puncCheck(output)
+		output = quoteCheck(output)
+		output = grammarCheck(output)
+
+		_,err := file.WriteString(output)
+		if err != nil {
+			panic(err)
+		}
 		println(output)
 
 	}
@@ -122,19 +132,21 @@ func isValidPunct(content string) (bool, int, int) {
 		if i > 0 && i < len(content)-1 {
 			next := content[i+1]
 			last := content[i-1]
-			if isPunctuation(v) && isAlpha(string(next)) && next != ' ' && !isPunctuation(rune(next)){
+
+			if isPunctuation(v) && isAlpha(string(next)) && next != ' ' && !isPunctuation(rune(next)) {
 				return false, i + 1, 1
 			}
-			if isPunctuation(v) && last == ' '{
+			if isPunctuation(v) && last == ' ' {
 				return false, i - 1, 0
 			}
+
 		}
 	}
 	return true, -1, -1
 }
 
 func isPunctuation(val rune) bool {
-	punctuation := []rune{'.', ',', '!', '?', ':', ';'}
+	punctuation := []rune{'.', ',', '!', '?', ':', ';', '\'', '"'}
 
 	for _, v := range punctuation {
 		if v == val {
@@ -175,6 +187,51 @@ func RemoveStringElem(s string, index int) string {
 }
 
 func addSpaceBetweenString(s string, index int) string {
-	s = s[:index] + " " + s[index+1:]
+	s = s[:index+1] + " " + s[index+1:]
 	return s
+}
+
+func quoteCheck(content string) string {
+	isOpenQuote := true
+	for i, v := range content {
+		if i > 0 && i < len(content)-1{
+			last := content[i-1]
+			next := content[i+1]
+			isQuote := v == '\'' || v == '"'
+			if isQuote {
+				if last != ' ' && isPunctuation(rune(content[i-1])) && isOpenQuote {
+					content = addSpaceBetweenString(content, i-1)
+					i++
+				}
+				if isOpenQuote && next == ' '{
+					content = RemoveStringElem(content, i+1)
+				}
+				isOpenQuote = !isOpenQuote
+			}
+			}
+			
+	}
+	return content
+}
+
+func grammarCheck(content string) string {
+	words := strings.Split(content," ")
+	chars := []string{"a", "e", "i", "o", "u","a", "h"}
+
+	for i, v := range words {
+		v = strings.ToLower(v)
+		if v == "a" && isIn(chars,string(words[i+1][0])) {
+			words[i] += "n"
+		}
+	}
+	return strings.Join(words," ")
+}
+
+func isIn(arr []string, val string) bool {
+	for _, v := range arr {
+		if v == val {
+			return true
+		}
+	}
+	return false
 }
