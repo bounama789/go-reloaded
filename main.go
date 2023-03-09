@@ -28,6 +28,9 @@ func main() {
 		output = puncCheck(output)
 		output = quoteCheck(output)
 		output = grammarCheck(output)
+		if output[len(output)-1] == ' ' {
+			output = RemoveStringElem(output,len(output)-1)
+		}
 
 		_, err := file.WriteString(output)
 		if err != nil {
@@ -65,7 +68,7 @@ func getIndexRange(s string, nword int) []int {
 		w = words[len(words)-1]
 		beg = strings.LastIndex(s, w)
 	} else {
-		w = words[len(words)-(nword+1)]
+		w = words[len(words)-(nword)]
 		beg = strings.LastIndex(s, w)
 	}
 	end = len(s) - 1
@@ -120,18 +123,24 @@ func correct(text string, option string, idx []int) string {
 
 func isValidPunct(content string) (bool, int, int) {
 	for i, v := range content {
-		var next,last byte
+		var next,last,f byte
 		if i > 0 && i < len(content)-1 {
+
+			if i< len(content)-2 {
+				f = content[i+2]
+			}
 			next = content[i+1]
 			last = content[i-1]
 
 
 		}
-		if isPunctuation(v) && last == ' ' {
+		fquote := f == '\'' || f == '"'
+
+		if isPunctuation(v) && last == ' ' &&  fquote{
 			return false, i - 1, 0
 		}
 
-		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) {
+		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)){
 			return false, i , 1
 		}
 	}
