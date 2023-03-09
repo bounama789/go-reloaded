@@ -18,6 +18,11 @@ func main() {
 		var output string
 
 		file, _ := os.Create(outfilename)
+		erro := os.Truncate(outfilename, 0)
+
+		if erro != nil {
+			panic(erro)
+		}
 
 		output += process(text, output, 0)
 		output = puncCheck(output)
@@ -28,7 +33,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		println(output)
 
 	}
 
@@ -116,17 +120,19 @@ func correct(text string, option string, idx []int) string {
 
 func isValidPunct(content string) (bool, int, int) {
 	for i, v := range content {
+		var next,last byte
 		if i > 0 && i < len(content)-1 {
-			next := content[i+1]
-			last := content[i-1]
+			next = content[i+1]
+			last = content[i-1]
 
-			if isPunctuation(v) && isAlpha(string(next)) && next != ' ' && !isPunctuation(rune(next)) {
-				return false, i + 1, 1
-			}
-			if isPunctuation(v) && last == ' ' {
-				return false, i - 1, 0
-			}
 
+		}
+		if isPunctuation(v) && last == ' ' {
+			return false, i - 1, 0
+		}
+
+		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) {
+			return false, i , 1
 		}
 	}
 	return true, -1, -1
