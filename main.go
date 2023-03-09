@@ -136,7 +136,7 @@ func isValidPunct(content string) (bool, int, int) {
 		}
 		fquote := f == '\'' || f == '"'
 
-		if isPunctuation(v) && last == ' ' &&  fquote{
+		if isPunctuation(v) && last == ' ' &&  !fquote{
 			return false, i - 1, 0
 		}
 
