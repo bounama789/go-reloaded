@@ -84,7 +84,7 @@ var tests = []Test{
 	},
 }
 
-func Tester(t *testing.T) {
+func TestAll(t *testing.T) {
 
 	for _, test := range tests {
 		if output := process(test.input); output != test.expected {

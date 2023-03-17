@@ -292,7 +292,6 @@ func isQuote(r rune) bool {
 	return r == '"' || r == '\''
 }
 
-// (max(max(cap, 2)))
 
 func format(str string) string {
 
