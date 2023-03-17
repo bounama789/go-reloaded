@@ -32,6 +32,8 @@ func main() {
 			panic(err)
 		}
 
+	} else {
+		fmt.Println("USAGE: go run . <input file> <output file>")
 	}
 
 }
@@ -84,7 +86,7 @@ func getOption(s string, begin int) (string, string, int, int) {
 				}
 
 			}
-break
+			break
 		}
 	}
 	return text, option, b, nword
@@ -289,8 +291,8 @@ func format(str string) string {
 
 	for i := 0; i < len(str)-1; i++ {
 		if i >= 0 && i < len(str)-1 {
-			if str[i] == '(' {
-				if i > 0 && str[i-1] != ' ' && str[i-1] != '('{
+			if IsBracket(rune(str[i])) {
+				if i > 0 && str[i-1] != ' ' && !IsBracket(rune(str[i-1])) {
 					str = addSpaceBetweenString(str, i-1)
 					i++
 				}
@@ -303,7 +305,7 @@ func format(str string) string {
 					str = RemoveStringElem(str, i-1)
 					i--
 				}
-				if i < len(str)-1 && str[i+1] != ' ' && str[i+1] != ')'{
+				if i < len(str)-1 && str[i+1] != ' ' && !IsBracket(rune(str[i+1])) {
 					str = addSpaceBetweenString(str, i)
 					i++
 				}
@@ -342,4 +344,14 @@ func process(s string) string {
 	}
 
 	return out
+}
+
+func IsBracket(r rune) bool {
+	brackets := []rune{'(', ')', '{', '}', '[', ']'}
+	for _, v := range brackets {
+		if r == v {
+			return true
+		}
+	}
+	return false
 }
