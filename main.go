@@ -27,16 +27,24 @@ func main() {
 		if erro != nil {
 			panic(erro)
 		}
-
-		output += process(*cont, output, 0)
+		var out string
+		output = format(*cont)
 		output = puncCheck(output)
 		output = fixQuotes(output)
-		output = grammarCheck(output)
-		if output[len(output)-1] == ' ' {
-			output = RemoveStringElem(output, len(output)-1)
+
+		out += process(output, out, 0)
+		out = puncCheck(out)
+		out = fixQuotes(out)
+
+		out = grammarCheck(out)
+		if out[len(out)-1] == ' ' {
+			out = RemoveStringElem(out, len(out)-1)
+		}
+		if out[0] == ' ' {
+			out = RemoveStringElem(out, 0)
 		}
 
-		_, err := file.WriteString(output)
+		_, err := file.WriteString(out)
 		if err != nil {
 			panic(err)
 		}
@@ -50,34 +58,47 @@ func getOption(s string, begin int) (string, string, int, int) {
 
 	var a, b, nword int
 	var err error
-	var text, option string
+	var text, option, temp string
 	for i := begin; i < len(s); i++ {
 		nword = 0
 		if s[i] == '(' {
 			a = i
-			text = s[begin : a-1]
+			if a > 0 {
+				text = s[begin : a-1]
+
+			}
 		}
 		if s[i] == ')' {
 			b = i
-			option = s[a+1 : b]
-			if strings.Contains(option, ",") {
-				commaIndex := strings.Index(option, ",")
-				nword, err = strconv.Atoi(option[commaIndex+2:])
+			temp = s[a+1 : b]
+			if strings.Contains(temp, ",") {
+				commaIndex := strings.Index(temp, ",")
+				nword, err = strconv.Atoi(temp[commaIndex+2:])
 				if err != nil {
 					continue
 				}
+				option = strings.ToLower(temp[:commaIndex]) 
+				if option == options[2] || option == options[3] {
+					option = ""
+					continue
+				}
+				if !isIn(options, option) {
+					continue
+				}
+
 				if nword <= 0 {
 					fmt.Printf("Error at (%s): number of words must be greater than 0 \n", option)
 					os.Exit(1)
 				}
 
-				option = option[:commaIndex]
+			} else {
+				option = strings.ToLower(s[a+1 : b]) 
+				if !isIn(options, option) {
+					continue
+				}
 
 			}
-			if !isIn(options, option) {
-				continue
-			}
-			break
+
 		}
 	}
 	return text, option, b, nword
@@ -93,10 +114,17 @@ func getIndexRange(s string, nword int) []int {
 		w = words[len(words)-1]
 		beg = strings.LastIndex(s, w)
 	} else {
-		x := strings.LastIndex(s, words[nword-1])
-		print(x)
-		w = words[len(words)-(nword)]
-		beg = strings.LastIndex(s[:(len(s)-1)-len(s[x:])], w)
+		for i := len(s) - 1; i >= 0; i-- {
+			if nword == 0 {
+				beg = i + 1
+				break
+			}
+			if s[i] == ' ' {
+				nword--
+			}
+		}
+		//		w = words[len(words)-(nword)]
+		//beg = strings.LastIndex(s[:(len(s)-1)-len(s[x:])], w)
 	}
 	end = len(s) - 1
 	idx = []int{beg, end}
@@ -123,7 +151,11 @@ func correct(text string, option string, idx []int) string {
 
 	switch option {
 	case "low":
+		// for i, v := range word {
+		// 	if isAlpha(string(v)) {
 		text = text[:beg] + strings.ToLower(word) + text[end+1:]
+		// }
+		// }
 	case "up":
 		text = text[:beg] + strings.ToUpper(word) + text[end+1:]
 	case "cap":
@@ -174,7 +206,7 @@ func isPunctuation(val rune) bool {
 
 func isAlpha(s string) bool {
 	for i := range s {
-		if s[i] < 'a' && s[i] > 'z' || s[i] < 'A' && s[i] > 'Z' || s[i] < '0' && s[i] > '9' {
+		if s[i] < 'a' && s[i] > 'z' || s[i] < 'A' && s[i] > 'Z' || s[i] < '0' && s[i] > '9' || s[i] == ' ' {
 			return false
 		}
 	}
@@ -207,33 +239,6 @@ func addSpaceBetweenString(s string, index int) string {
 	return s
 }
 
-func quoteCheck(content string) string {
-	isOpenQuote := true
-	for i, v := range content {
-		if i > 0 && i < len(content)-1 {
-			last := content[i-1]
-			next := content[i+1]
-			isQuote := v == '\'' || v == '"'
-
-			if isQuote && isAlpha(string(next)) && isAlpha(string(last)) {
-				continue
-			}
-			if isQuote {
-				if last != ' ' && isPunctuation(rune(content[i-1])) && isOpenQuote {
-					content = addSpaceBetweenString(content, i-1)
-					i++
-				}
-				if isOpenQuote && next == ' ' {
-					content = RemoveStringElem(content, i+1)
-				}
-				isOpenQuote = !isOpenQuote
-			}
-		}
-
-	}
-	return content
-}
-
 func grammarCheck(content string) string {
 	words := strings.Split(content, " ")
 	chars := []string{"a", "e", "i", "o", "u", "a", "h"}
@@ -257,47 +262,68 @@ func isIn(arr []string, val string) bool {
 }
 
 func fixQuotes(str string) string {
-	// Define variables to keep track of whether we're inside quotes and which kind of quote we're using
-	inQuotes := false
-	quoteType := ""
-
-	// Create a new string builder to store the corrected string
-	var fixedStr strings.Builder
-
-	// Iterate over each character in the input string
-	for _, char := range str {
-		// Check if the character is a quote
-		if char == '\'' || char == '"' {
-			// If we're not currently inside quotes, start a new quote
-			if !inQuotes {
-				inQuotes = true
-				quoteType = string(char)
-				fixedStr.WriteRune(char)
-			} else {
-				// If we're already inside quotes, end the current quote
-				if quoteType == string(char) {
-					inQuotes = false
-					quoteType = ""
-					fixedStr.WriteRune(char)
+	inQuote := false
+	for i := 0; i < len(str); i++ {
+		if i > 0 && i < len(str)-1 {
+			if isQuote(rune(str[i])) && (!isAlpha(string(str[i-1])) || !isAlpha(string(str[i+1]))) {
+				if !inQuote {
+					inQuote = true
+					if str[i-1] != ' ' {
+						str = addSpaceBetweenString(str, i-1)
+						i++
+					}
+					if str[i+1] == ' ' {
+						str = RemoveStringElem(str, i+1)
+					}
 				} else {
-					// If we encounter a different type of quote inside the current quote, treat it as a regular character
-					fixedStr.WriteRune(char)
+					inQuote = true
+					if str[i-1] == ' ' {
+						str = RemoveStringElem(str, i-1)
+						i--
+
+					}
+					if str[i+1] != ' ' {
+						str = addSpaceBetweenString(str, i)
+						i++
+					}
 				}
-			}
-		} else {
-			// If the character is not a quote, check if we're currently inside quotes
-			if inQuotes {
-				// If we're inside quotes, remove any spaces before or after the current character
-				if char != ' ' {
-					fixedStr.WriteRune(char)
-				}
-			} else {
-				// If we're not inside quotes, just add the current character to the output string
-				fixedStr.WriteRune(char)
 			}
 		}
 	}
+	return str
+}
 
-	// Return the corrected string
-	return fixedStr.String()
+func isQuote(r rune) bool {
+	return r == '"' || r == '\''
+}
+
+// (max(max(cap, 2)))
+
+func format(str string) string {
+
+	for i := 0; i < len(str)-1; i++ {
+		if i >= 0 && i < len(str)-1 {
+			if str[i] == '(' {
+				if i > 0 && str[i-1] != ' ' {
+					str = addSpaceBetweenString(str, i-1)
+					i++
+				}
+				if i < len(str)-1 && str[i+1] == ' ' {
+					str = RemoveStringElem(str, i+1)
+				}
+			}
+			if str[i] == ')' {
+				if i > 0 && str[i-1] == ' ' {
+					str = RemoveStringElem(str, i-1)
+					i--
+				}
+				if i < len(str)-1 && str[i+1] != ' ' {
+					str = addSpaceBetweenString(str, i)
+					i++
+				}
+
+			}
+		}
+	}
+	return str
 }
