@@ -19,7 +19,6 @@ func main() {
 		content, _ := os.ReadFile(filename)
 		*cont = string(content)
 		var output string
-		fmt.Println(*cont)
 
 		file, _ := os.Create(outfilename)
 		erro := os.Truncate(outfilename, 0)
@@ -27,24 +26,8 @@ func main() {
 		if erro != nil {
 			panic(erro)
 		}
-		var out string
-		output = format(*cont)
-		output = puncCheck(output)
-		output = fixQuotes(output)
-
-		out += process(output, out, 0)
-		out = puncCheck(out)
-		out = fixQuotes(out)
-
-		out = grammarCheck(out)
-		if out[len(out)-1] == ' ' {
-			out = RemoveStringElem(out, len(out)-1)
-		}
-		if out[0] == ' ' {
-			out = RemoveStringElem(out, 0)
-		}
-
-		_, err := file.WriteString(out)
+		output = process(*cont)
+		_, err := file.WriteString(output)
 		if err != nil {
 			panic(err)
 		}
@@ -65,6 +48,9 @@ func getOption(s string, begin int) (string, string, int, int) {
 			a = i
 			if a > 0 {
 				text = s[begin : a-1]
+				if len(text) == 0 {
+					continue
+				}
 
 			}
 		}
@@ -77,7 +63,7 @@ func getOption(s string, begin int) (string, string, int, int) {
 				if err != nil {
 					continue
 				}
-				option = strings.ToLower(temp[:commaIndex]) 
+				option = strings.ToLower(temp[:commaIndex])
 				if option == options[2] || option == options[3] {
 					option = ""
 					continue
@@ -92,13 +78,13 @@ func getOption(s string, begin int) (string, string, int, int) {
 				}
 
 			} else {
-				option = strings.ToLower(s[a+1 : b]) 
+				option = strings.ToLower(s[a+1 : b])
 				if !isIn(options, option) {
 					continue
 				}
 
 			}
-
+break
 		}
 	}
 	return text, option, b, nword
@@ -131,7 +117,7 @@ func getIndexRange(s string, nword int) []int {
 	return idx
 }
 
-func process(content string, output string, start int) string {
+func convert(content string, output string, start int) string {
 	text, option, last, nword := getOption(content, start)
 
 	if option == "" {
@@ -141,7 +127,7 @@ func process(content string, output string, start int) string {
 	idx := getIndexRange(text, nword)
 	output += correct(text, option, idx)
 
-	return process(content, output, last+1)
+	return convert(content, output, last+1)
 }
 
 func correct(text string, option string, idx []int) string {
@@ -304,7 +290,7 @@ func format(str string) string {
 	for i := 0; i < len(str)-1; i++ {
 		if i >= 0 && i < len(str)-1 {
 			if str[i] == '(' {
-				if i > 0 && str[i-1] != ' ' {
+				if i > 0 && str[i-1] != ' ' && str[i-1] != '('{
 					str = addSpaceBetweenString(str, i-1)
 					i++
 				}
@@ -317,7 +303,7 @@ func format(str string) string {
 					str = RemoveStringElem(str, i-1)
 					i--
 				}
-				if i < len(str)-1 && str[i+1] != ' ' {
+				if i < len(str)-1 && str[i+1] != ' ' && str[i+1] != ')'{
 					str = addSpaceBetweenString(str, i)
 					i++
 				}
@@ -326,4 +312,34 @@ func format(str string) string {
 		}
 	}
 	return str
+}
+
+func process(s string) string {
+	var out string
+
+	if len(s) == 0 {
+		fmt.Println("Error: Empty file")
+		os.Exit(1)
+	}
+
+	output := format(s)
+	output = puncCheck(output)
+	output = fixQuotes(output)
+
+	out += convert(output, out, 0)
+	out = puncCheck(out)
+	out = fixQuotes(out)
+
+	out = grammarCheck(out)
+
+	if len(out) > 0 {
+		if out[len(out)-1] == ' ' {
+			out = RemoveStringElem(out, len(out)-1)
+		}
+		if out[0] == ' ' {
+			out = RemoveStringElem(out, 0)
+		}
+	}
+
+	return out
 }
