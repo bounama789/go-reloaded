@@ -251,10 +251,14 @@ func isIn(arr []string, val string) bool {
 
 func fixQuotes(str string) string {
 	inQuote := false
+	var last,next rune
 	for i := 0; i < len(str); i++ {
 		if i > 0 && i < len(str)-1 {
-			if isQuote(rune(str[i])) && (!isAlpha(string(str[i-1])) || !isAlpha(string(str[i+1]))) {
-				if !inQuote {
+			last = rune(str[i-1])
+			next = rune(str[i+1])
+		}
+			if isQuote(rune(str[i])) {
+				if i >0 && isQuote(rune(str[i])) && !inQuote &&  (!isAlpha(string(last)) || !isAlpha(string(next))) {
 					inQuote = true
 					if str[i-1] != ' ' {
 						str = addSpaceBetweenString(str, i-1)
@@ -263,20 +267,23 @@ func fixQuotes(str string) string {
 					if str[i+1] == ' ' {
 						str = RemoveStringElem(str, i+1)
 					}
-				} else {
+				} else if i < len(str) && (!isAlpha(string(last)) || !isAlpha(string(next))){
 					inQuote = true
-					if str[i-1] == ' ' {
+					if i>0 && str[i-1] == ' ' {
 						str = RemoveStringElem(str, i-1)
 						i--
 
 					}
-					if str[i+1] != ' ' {
+					if i<len(str)-1 && str[i+1] != ' ' {
 						str = addSpaceBetweenString(str, i)
 						i++
 					}
 				}
+				if i == len(str)-1 && str[i-1] == ' '{
+					str = RemoveStringElem(str, i-1)
+				}
 			}
-		}
+		
 	}
 	return str
 }
