@@ -82,6 +82,10 @@ var tests = []Test{
 		input:    "harold wilson (cap, 2) : ' I am a optimist ,but a optimist who carries a raincoat . '",
 		expected: "Harold Wilson: 'I am an optimist, but an optimist who carries a raincoat.'",
 	},
+	{
+		input:    "I am exactly how they describe me: ' awesome '",
+		expected: "I am exactly how they describe me: 'awesome'",
+	},
 }
 
 func TestAll(t *testing.T) {
