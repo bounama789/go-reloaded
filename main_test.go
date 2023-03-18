@@ -90,6 +90,14 @@ var tests = []Test{
 		input:    "(cap),(up)(low)abcd(up)",
 		expected: ", ABCD",
 	},
+	{
+		input:    "'I am exactly ' 'h'ow they describe me': ' awesome '",
+		expected: "'I am exactly' 'h'ow they describe me': 'awesome'",
+	},
+	{
+		input:    "harold wilson (cap, 2) : ' I am a optimist ,but a (up) optimist who carries a raincoat . '",
+		expected: "Harold Wilson: 'I am an optimist, but AN optimist who carries a raincoat.'",
+	},
 }
 
 func TestAll(t *testing.T) {
