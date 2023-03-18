@@ -106,12 +106,16 @@ var tests = []Test{
 		input:    ",,,",
 		expected: ",,,",
 	},
+	{
+		input:    "'I am exactly ' 'h'ow they describe me': ' awesome (cap)(cap) (low)'",
+		expected: "'I am exactly' 'h'ow they describe me': 'awesome'",
+	},
 }
 
 func TestAll(t *testing.T) {
 	for _, test := range tests {
 		if output := process(test.input); output != test.expected {
-			t.Errorf("Output %q not equal to \n expected %q", output, test.expected)
+			t.Errorf("\033[31mOutput %q not equal to \n expected %q\033[31m", output, test.expected)
 		}
 	}
 }
