@@ -48,7 +48,7 @@ func getOption(s string, begin int) (string, string, int, int) {
 		nword = 0
 		if s[i] == '(' {
 			a = i
-			if a > 0 {
+			if a > begin {
 				text = s[begin : a-1]
 				if len(text) == 0 {
 					continue
@@ -174,9 +174,17 @@ func isValidPunct(content string) (bool, int, int) {
 			return false, i - 1, 0
 		}
 
-		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) {
+		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) && next !=0{
 			return false, i, 1
 		}
+	}
+	if isPunctuation(rune(content[len(content)-1])) && content[len(content)-2]== ' '{
+		return false, len(content)-2,0
+		
+	}
+	if isPunctuation(rune(content[0])) && content[1] != ' '{
+		return false, 1,1
+		
 	}
 	return true, -1, -1
 }

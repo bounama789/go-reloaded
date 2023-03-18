@@ -86,6 +86,10 @@ var tests = []Test{
 		input:    "I am exactly how they describe me: ' awesome '",
 		expected: "I am exactly how they describe me: 'awesome'",
 	},
+	{
+		input:    "(cap),(up)(low)abcd(up)",
+		expected: ", ABCD",
+	},
 }
 
 func TestAll(t *testing.T) {
