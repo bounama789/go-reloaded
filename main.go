@@ -8,6 +8,7 @@ import (
 )
 
 var cont = new(string)
+var results = new(string)
 
 func main() {
 
@@ -35,7 +36,6 @@ func main() {
 	} else {
 		fmt.Println("USAGE: go run . <input file> <output file>")
 	}
-
 }
 
 func getOption(s string, begin int) (string, string, int, int) {
@@ -79,17 +79,19 @@ func getOption(s string, begin int) (string, string, int, int) {
 					os.Exit(1)
 				}
 
+				*results += text
+
 			} else {
 				option = strings.ToLower(s[a+1 : b])
 				if !isIn(options, option) {
 					continue
 				}
-
+				*results += text
 			}
 			break
 		}
 	}
-	return text, option, b, nword
+	return *results, option, b, nword
 }
 
 func getIndexRange(s string, nword int) []int {
@@ -123,11 +125,11 @@ func convert(content string, output string, start int) string {
 	text, option, last, nword := getOption(content, start)
 
 	if option == "" {
-		return output + content[start:]
+		return *results + content[start:]
 	}
 
 	idx := getIndexRange(text, nword)
-	output += correct(text, option, idx)
+	*results = correct(text, option, idx)
 
 	return convert(content, output, last+1)
 }
@@ -139,21 +141,25 @@ func correct(text string, option string, idx []int) string {
 
 	switch option {
 	case "low":
-		// for i, v := range word {
-		// 	if isAlpha(string(v)) {
 		text = text[:beg] + strings.ToLower(word) + text[end+1:]
-		// }
-		// }
 	case "up":
 		text = text[:beg] + strings.ToUpper(word) + text[end+1:]
 	case "cap":
 		text = text[:beg] + strings.Title(word) + text[end+1:]
 	case "bin":
-		w, _ := strconv.ParseInt(word, 2, 8)
+		w, err := strconv.ParseInt(word, 2, 8)
+		if err != nil {
+			fmt.Printf("Cannot convert %s (not a binary number) to decimal \n", word)
+			os.Exit(1)
+		}
 		s := strconv.FormatInt(w, 10)
 		text = text[:beg] + s + text[end+1:]
 	case "hex":
-		w, _ := strconv.ParseInt(word, 16, 8)
+		w, err := strconv.ParseInt(word, 16, 8)
+		if err != nil {
+			fmt.Printf("Cannot convert %s (not an hexadecimal number) to decimal \n", word)
+			os.Exit(1)
+		}
 		s := strconv.FormatInt(w, 10)
 		text = text[:beg] + s + text[end+1:]
 	}
@@ -170,7 +176,7 @@ func isValidPunct(content string) (bool, int, int) {
 
 		}
 
-		if isPunctuation(v) && last == ' ' {
+		if isPunctuation(v) && last == ' ' && last != 0 {
 			return false, i - 1, 0
 		}
 
@@ -182,7 +188,7 @@ func isValidPunct(content string) (bool, int, int) {
 		return false, len(content) - 2, 0
 
 	}
-	if isPunctuation(rune(content[0])) && content[1] != ' ' {
+	if isPunctuation(rune(content[0])) && content[1] != ' ' && !isPunctuation(rune(content[1])) {
 		return false, 1, 1
 
 	}
@@ -278,8 +284,11 @@ func fixQuotes(str string) string {
 			last = rune(str[i-1])
 			next = rune(str[i+1])
 		}
+		if isPunctuation(rune(str[i])) {
+			inQuote = false
+		}
 		if isQuote(rune(str[i])) && (!isAlpha(string(last)) || !isAlpha(string(next))) {
-			if isQuote(rune(str[i])) && !inQuote {
+			if !inQuote {
 				inQuote = true
 				if str[i-1] != ' ' {
 					str = addSpaceBetweenString(str, i-1)
@@ -309,7 +318,6 @@ func isQuote(r rune) bool {
 }
 
 func format(str string) string {
-
 	for i := 0; i < len(str)-1; i++ {
 		if i >= 0 && i < len(str)-1 {
 			if IsBracket(rune(str[i])) {
@@ -354,7 +362,6 @@ func process(s string) string {
 	out = puncCheck(out)
 	out = fixQuotes(out)
 
-
 	if len(out) > 0 {
 		if out[len(out)-1] == ' ' {
 			out = RemoveStringElem(out, len(out)-1)
@@ -363,6 +370,8 @@ func process(s string) string {
 			out = RemoveStringElem(out, 0)
 		}
 	}
+
+	*results = ""
 
 	return out
 }

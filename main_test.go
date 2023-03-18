@@ -95,13 +95,20 @@ var tests = []Test{
 		expected: "'I am exactly' 'h'ow they describe me': 'awesome'",
 	},
 	{
-		input:    "harold wilson (cap, 2) : ' I am a optimist ,but a (up) optimist who carries a raincoat . '",
-		expected: "Harold Wilson: 'I am an optimist, but AN optimist who carries a raincoat.'",
+		input:    "Don not be sad ,because sad (cap) (up, 2) backwards is das . And das not good",
+		expected: "Don not be sad, BECAUSE SAD backwards is das. And das not good",
+	},
+	{
+		input:    "(max(max(cap,2)))",
+		expected: "(Max (Max))",
+	},
+	{
+		input:    ",,,",
+		expected: ",,,",
 	},
 }
 
 func TestAll(t *testing.T) {
-
 	for _, test := range tests {
 		if output := process(test.input); output != test.expected {
 			t.Errorf("Output %q not equal to \n expected %q", output, test.expected)
