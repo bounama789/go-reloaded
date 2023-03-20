@@ -125,7 +125,9 @@ func convert(content string, output string, start int) string {
 	text, option, last, nword := getOption(content, start)
 
 	if option == "" {
-		return *results + content[start:]
+		result := *results + content[start:]
+		*results = ""
+		return result
 	}
 
 	idx := getIndexRange(text, nword)
@@ -250,7 +252,7 @@ func grammarCheck(content string) string {
 		valid := true
 		v = strings.ToLower(v)
 
-		if v == "a" {
+		if v == "a" && i < len(words)-1 {
 			if len(words[i:]) > 0 {
 				w := words[i : i+2]
 				_, option, _, _ := getOption(strings.Join(w, " "), 0)
@@ -379,6 +381,7 @@ func format(str string) string {
 
 func process(s string) string {
 	var out string
+	var out1 string
 
 	if len(s) == 0 {
 		fmt.Println("Error: Empty file")
@@ -394,6 +397,8 @@ func process(s string) string {
 	out += convert(output, out, 0)
 	// out = puncCheck(out)
 	out = fixQuotes(out)
+	out1 += convert(out, out1, 0)
+
 
 	if len(out) > 0 {
 		if out[len(out)-1] == ' ' {
@@ -406,7 +411,7 @@ func process(s string) string {
 
 	*results = ""
 
-	return out
+	return out1
 }
 
 func IsBracket(r rune) bool {

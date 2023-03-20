@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -10,30 +11,30 @@ type Test struct {
 }
 
 var tests = []Test{
-	// {
-	// 	input:    "1E (hex) files were added",
-	// 	expected: "30 files were added",
-	// },
-	// {
-	// 	input:    "It has been 10 (bin) years",
-	// 	expected: "It has been 2 years",
-	// },
-	// {
-	// 	input:    "Ready, set, go (up) !",
-	// 	expected: "Ready, set, GO!",
-	// },
-	// {
-	// 	input:    "I should stop SHOUTING (low)",
-	// 	expected: "I should stop shouting",
-	// },
-	// {
-	// 	input:    "Welcome to the Brooklyn bridge (cap)",
-	// 	expected: "Welcome to the Brooklyn Bridge",
-	// },
-	// {
-	// 	input:    "This is so exciting (up, 2)",
-	// 	expected: "This is SO EXCITING",
-	// },
+	{
+		input:    "1E (hex) files were added",
+		expected: "30 files were added",
+	},
+	{
+		input:    "It has been 10 (bin) years",
+		expected: "It has been 2 years",
+	},
+	{
+		input:    "Ready, set, go (up) !",
+		expected: "Ready, set, GO!",
+	},
+	{
+		input:    "I should stop SHOUTING (low)",
+		expected: "I should stop shouting",
+	},
+	{
+		input:    "Welcome to the Brooklyn bridge (cap)",
+		expected: "Welcome to the Brooklyn Bridge",
+	},
+	{
+		input:    "This is so exciting (up, 2)",
+		expected: "This is SO EXCITING",
+	},
 	{
 		input:    "I was sitting over there ,and then BAMM !!",
 		expected: "I was sitting over there, and then BAMM!!",
@@ -72,7 +73,8 @@ var tests = []Test{
 	{
 		input:    "If I make you BREAKFAST IN BED (low, 3) just say thank you instead of: how (cap) did you get in my house (up, 2) ?",
 		expected: "If I make you breakfast in bed just say thank you instead of: How did you get in MY HOUSE?",
-	}, {
+	},
+	{
 		input:    "I have to pack 101 (bin) outfits. Packed 1a (hex) just to be sure",
 		expected: "I have to pack 5 outfits. Packed 26 just to be sure",
 	},
@@ -112,12 +114,27 @@ var tests = []Test{
 		input:    "'I'm exactly ' 'h'ow they describe me': ' awesome (cap)(cap) (low)'",
 		expected: "'I'm exactly' 'h'ow they describe me': 'awesome'",
 	},
+	{
+		input:    "i'm a 'orphan'",
+		expected: "i'm an 'orphan'",
+	},
+	{
+		input:    "she got a A",
+		expected: "she got an A",
+	},
+	{
+		input:    "dsqds fdgdfsdf (cap, 10 (bin))",
+		expected: "Dsqds Fdgdfsdf",
+	},
 }
 
 func TestAll(t *testing.T) {
-	for _, test := range tests {
+	fmt.Printf("%-55s", fmt.Sprintf("%55s", "\u001b[45mTESTING\u001b[0m \n"))
+	for i, test := range tests {
 		if output := process(test.input); output != test.expected {
-			t.Errorf("\033 \n\t Fail:\033   %q not equal to \n expected %q", output, test.expected)
+			fmt.Printf("\u001b[47m\u001b[44;1mTest %v\u001b[0m \n \u001b[31m|\n |_Fail\n\u001b[0m\u001b[34m   expected\u001b[0m : %v\n   \u001b[33mequals to\u001b[0m; %v\n",i,output,test.expected)
+		} else {
+			fmt.Printf("\u001b[47m\u001b[44;1mTest %v\u001b[0m \n \u001b[32;1m|\n |_Pass\u001b[0m\n\n",i)
 		}
 	}
 }
