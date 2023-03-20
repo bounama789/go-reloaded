@@ -256,7 +256,7 @@ func grammarCheck(content string) string {
 			if len(words[i:]) > 0 {
 				w := words[i : i+2]
 				_, option, _, _ := getOption(strings.Join(w, " "), 0)
-				if option != "" && len(words[i+1:])>1{
+				if option != "" && len(words[i+1:]) > 1 {
 					for _, c := range words[i+2] {
 						if isAlpha(string(c)) {
 							if isIn(chars, strings.ToLower(string(c))) {
@@ -304,45 +304,47 @@ func isIn(arr []string, val string) bool {
 func fixQuotes(str string) string {
 	inQuote := false
 	var last, next rune
-	if isQuote(rune(str[0])) {
-		inQuote = true
-		if str[1] == ' ' {
-			str = RemoveStringElem(str, 1)
-		}
-	}
-	if isQuote(rune(str[len(str)-1])) && str[len(str)-2] == ' ' {
-		str = RemoveStringElem(str, len(str)-2)
-	}
-	for i := 0; i < len(str); i++ {
-		if i > 0 && i < len(str)-1 {
-			last = rune(str[i-1])
-			next = rune(str[i+1])
-		}
-		if isPunctuation(rune(str[i])) {
-			inQuote = false
-		}
-		if isQuote(rune(str[i])) && (!isAlpha(string(last)) || !isAlpha(string(next))) {
-			if !inQuote {
-				inQuote = true
-				if str[i-1] != ' ' {
-					str = addSpaceBetweenString(str, i-1)
-					i++
-				}
-				if i < len(str)-1 && str[i+1] == ' ' {
-					str = RemoveStringElem(str, i+1)
-				}
-			} else {
-				inQuote = false
-				if str[i-1] == ' ' {
-					str = RemoveStringElem(str, i-1)
-					i--
-				}
-				if i < len(str)-1 && str[i+1] != ' ' {
-					str = addSpaceBetweenString(str, i)
-				}
+	if len(str) > 0 {
+		if isQuote(rune(str[0])) {
+			inQuote = true
+			if str[1] == ' ' {
+				str = RemoveStringElem(str, 1)
 			}
 		}
+		if isQuote(rune(str[len(str)-1])) && str[len(str)-2] == ' ' {
+			str = RemoveStringElem(str, len(str)-2)
+		}
+		for i := 0; i < len(str); i++ {
+			if i > 0 && i < len(str)-1 {
+				last = rune(str[i-1])
+				next = rune(str[i+1])
+			}
+			if isPunctuation(rune(str[i])) {
+				inQuote = false
+			}
+			if isQuote(rune(str[i])) && (!isAlpha(string(last)) || !isAlpha(string(next))) {
+				if !inQuote {
+					inQuote = true
+					if str[i-1] != ' ' {
+						str = addSpaceBetweenString(str, i-1)
+						i++
+					}
+					if i < len(str)-1 && str[i+1] == ' ' {
+						str = RemoveStringElem(str, i+1)
+					}
+				} else {
+					inQuote = false
+					if str[i-1] == ' ' {
+						str = RemoveStringElem(str, i-1)
+						i--
+					}
+					if i < len(str)-1 && str[i+1] != ' ' {
+						str = addSpaceBetweenString(str, i)
+					}
+				}
+			}
 
+		}
 	}
 	return str
 }
@@ -399,14 +401,11 @@ func process(s string) string {
 	out = fixQuotes(out)
 	out1 += convert(out, out1, 0)
 
-
-	if len(out) > 0 {
-		if out[len(out)-1] == ' ' {
-			out = RemoveStringElem(out, len(out)-1)
-		}
-		if out[0] == ' ' {
-			out = RemoveStringElem(out, 0)
-		}
+	if len(out1) > 0 && out1[len(out1)-1] == ' ' {
+		out1 = RemoveStringElem(out1, len(out1)-1)
+	}
+	if len(out1) > 0 && out1[0] == ' ' {
+		out1 = RemoveStringElem(out1, 0)
 	}
 
 	*results = ""
