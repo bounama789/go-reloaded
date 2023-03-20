@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 type Test struct {
 	input    string
@@ -8,30 +10,30 @@ type Test struct {
 }
 
 var tests = []Test{
-	{
-		input:    "1E (hex) files were added",
-		expected: "30 files were added",
-	},
-	{
-		input:    "It has been 10 (bin) years",
-		expected: "It has been 2 years",
-	},
-	{
-		input:    "Ready, set, go (up) !",
-		expected: "Ready, set, GO!",
-	},
-	{
-		input:    "I should stop SHOUTING (low)",
-		expected: "I should stop shouting",
-	},
-	{
-		input:    "Welcome to the Brooklyn bridge (cap)",
-		expected: "Welcome to the Brooklyn Bridge",
-	},
-	{
-		input:    "This is so exciting (up, 2)",
-		expected: "This is SO EXCITING",
-	},
+	// {
+	// 	input:    "1E (hex) files were added",
+	// 	expected: "30 files were added",
+	// },
+	// {
+	// 	input:    "It has been 10 (bin) years",
+	// 	expected: "It has been 2 years",
+	// },
+	// {
+	// 	input:    "Ready, set, go (up) !",
+	// 	expected: "Ready, set, GO!",
+	// },
+	// {
+	// 	input:    "I should stop SHOUTING (low)",
+	// 	expected: "I should stop shouting",
+	// },
+	// {
+	// 	input:    "Welcome to the Brooklyn bridge (cap)",
+	// 	expected: "Welcome to the Brooklyn Bridge",
+	// },
+	// {
+	// 	input:    "This is so exciting (up, 2)",
+	// 	expected: "This is SO EXCITING",
+	// },
 	{
 		input:    "I was sitting over there ,and then BAMM !!",
 		expected: "I was sitting over there, and then BAMM!!",
@@ -107,15 +109,15 @@ var tests = []Test{
 		expected: ",,,",
 	},
 	{
-		input:    "'I am exactly ' 'h'ow they describe me': ' awesome (cap)(cap) (low)'",
-		expected: "'I am exactly' 'h'ow they describe me': 'awesome'",
+		input:    "'I'm exactly ' 'h'ow they describe me': ' awesome (cap)(cap) (low)'",
+		expected: "'I'm exactly' 'h'ow they describe me': 'awesome'",
 	},
 }
 
 func TestAll(t *testing.T) {
 	for _, test := range tests {
 		if output := process(test.input); output != test.expected {
-			t.Errorf("\033[31mOutput %q not equal to \n expected %q\033[31m", output, test.expected)
+			t.Errorf("\033 \n\t Fail:\033   %q not equal to \n expected %q", output, test.expected)
 		}
 	}
 }

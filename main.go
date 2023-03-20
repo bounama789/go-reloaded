@@ -180,7 +180,7 @@ func isValidPunct(content string) (bool, int, int) {
 			return false, i - 1, 0
 		}
 
-		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) && next != 0 {
+		if isPunctuation(v) && next != ' ' && !isPunctuation(rune(next)) && !isQuote(rune(next)) && next != 0 {
 			return false, i, 1
 		}
 	}
@@ -228,6 +228,7 @@ func puncCheck(content string) string {
 	case 1:
 		content = addSpaceBetweenString(content, idxError)
 	}
+	content = fixQuotes(content)
 	return puncCheck(content)
 }
 
@@ -246,15 +247,46 @@ func grammarCheck(content string) string {
 	chars := []string{"a", "e", "i", "o", "u", "a", "h"}
 
 	for i, v := range words {
-		inOption := false
+		valid := true
 		v = strings.ToLower(v)
-		if inOption {
-			continue
-		}
-		if v == "a" && isIn(chars, strings.ToLower(string(words[i+1][0]))) {
-			words[i] += "n"
+
+		if v == "a" {
+			if len(words[i:]) > 0 {
+				w := words[i : i+2]
+				_, option, _, _ := getOption(strings.Join(w, " "), 0)
+				if option != "" && len(words[i+1:])>1{
+					for _, c := range words[i+2] {
+						if isAlpha(string(c)) {
+							if isIn(chars, strings.ToLower(string(c))) {
+								valid = false
+								break
+							} else if isQuote(c) || IsBracket(c) {
+								continue
+							}
+							break
+						}
+					}
+				} else {
+					for _, c := range words[i+1] {
+						if isAlpha(string(c)) {
+							if isIn(chars, strings.ToLower(string(c))) {
+								valid = false
+								break
+							} else if isQuote(c) || IsBracket(c) {
+								continue
+							}
+							break
+						}
+					}
+				}
+				if !valid {
+					words[i] += "n"
+
+				}
+			}
 		}
 	}
+	*results = ""
 	return strings.Join(words, " ")
 }
 
@@ -294,7 +326,7 @@ func fixQuotes(str string) string {
 					str = addSpaceBetweenString(str, i-1)
 					i++
 				}
-				if str[i+1] == ' ' {
+				if i < len(str)-1 && str[i+1] == ' ' {
 					str = RemoveStringElem(str, i+1)
 				}
 			} else {
@@ -303,7 +335,7 @@ func fixQuotes(str string) string {
 					str = RemoveStringElem(str, i-1)
 					i--
 				}
-				if str[i+1] != ' ' {
+				if i < len(str)-1 && str[i+1] != ' ' {
 					str = addSpaceBetweenString(str, i)
 				}
 			}
@@ -353,13 +385,14 @@ func process(s string) string {
 		os.Exit(1)
 	}
 
-	output := format(s)
+	output := RemSpace(s)
+	output = format(output)
+	// output = fixQuotes(output)
 	output = puncCheck(output)
-	output = fixQuotes(output)
 	output = grammarCheck(output)
 
 	out += convert(output, out, 0)
-	out = puncCheck(out)
+	// out = puncCheck(out)
 	out = fixQuotes(out)
 
 	if len(out) > 0 {
@@ -384,4 +417,25 @@ func IsBracket(r rune) bool {
 		}
 	}
 	return false
+}
+
+func RemSpace(s string) string {
+	valid := true
+	var idx int
+	for i, v := range s {
+		if i < len(s)-1 && v == ' ' && s[i+1] == ' ' {
+			valid = false
+			idx = i + 1
+			break
+		}
+	}
+	if valid {
+		if (isPunctuation(rune(s[len(s)-1])) || isQuote(rune(s[len(s)-1])) || IsBracket(rune(s[len(s)-1]))) && rune(s[len(s)-2]) == ' ' {
+			s = RemoveStringElem(s, len(s)-2)
+		}
+		return s
+	}
+
+	s = RemoveStringElem(s, idx)
+	return RemSpace(s)
 }
