@@ -84,12 +84,17 @@ func getOption(s string, begin int) (string, string, int, int) {
 			} else {
 				option = strings.ToLower(s[a+1 : b])
 				if !isIn(options, option) {
+					text = s[begin : b+1]
 					continue
 				}
 				*results += text
 			}
 			break
 		}
+	}
+	if !isIn(options,option) {
+		return *results, "", b, nword
+
 	}
 	return *results, option, b, nword
 }
@@ -147,9 +152,9 @@ func correct(text string, option string, idx []int) string {
 	case "up":
 		text = text[:beg] + strings.ToUpper(word) + text[end+1:]
 	case "cap":
-		text = text[:beg] + strings.Title(word) + text[end+1:]
+		text = text[:beg] + strings.Title(strings.ToLower(word)) + text[end+1:]
 	case "bin":
-		w, err := strconv.ParseInt(word, 2, 8)
+		w, err := strconv.ParseInt(word, 2, 64)
 		if err != nil {
 			fmt.Printf("Cannot convert %s (not a binary number) to decimal \n", word)
 			os.Exit(1)
@@ -157,7 +162,7 @@ func correct(text string, option string, idx []int) string {
 		s := strconv.FormatInt(w, 10)
 		text = text[:beg] + s + text[end+1:]
 	case "hex":
-		w, err := strconv.ParseInt(word, 16, 8)
+		w, err := strconv.ParseInt(word, 16, 64)
 		if err != nil {
 			fmt.Printf("Cannot convert %s (not an hexadecimal number) to decimal \n", word)
 			os.Exit(1)
@@ -210,7 +215,7 @@ func isPunctuation(val rune) bool {
 
 func isAlpha(s string) bool {
 	for i := range s {
-		if s[i] < 'a' && s[i] > 'z' || s[i] < 'A' && s[i] > 'Z' || s[i] < '0' && s[i] > '9' || s[i] == ' ' {
+		if( s[i] < 'a' && s[i] > 'z') ||( s[i] < 'A' && s[i] > 'Z') ||( s[i] < '0' && s[i] > '9') || s[i] == ' ' || isQuote(rune(s[i])) {
 			return false
 		}
 	}
@@ -262,11 +267,11 @@ func grammarCheck(content string) string {
 							if isIn(chars, strings.ToLower(string(c))) {
 								valid = false
 								break
-							} else if isQuote(c) || IsBracket(c) {
-								continue
+							} else {
+								break
 							}
-							break
 						}
+						continue
 					}
 				} else {
 					for _, c := range words[i+1] {
@@ -274,11 +279,11 @@ func grammarCheck(content string) string {
 							if isIn(chars, strings.ToLower(string(c))) {
 								valid = false
 								break
-							} else if isQuote(c) || IsBracket(c) {
-								continue
+							} else {
+								break
 							}
-							break
 						}
+						continue
 					}
 				}
 				if !valid {
@@ -370,7 +375,7 @@ func format(str string) string {
 					str = RemoveStringElem(str, i-1)
 					i--
 				}
-				if i < len(str)-1 && str[i+1] != ' ' && !IsBracket(rune(str[i+1])) {
+				if i < len(str)-1 && str[i+1] != ' ' && str[i+1] != ')' {
 					str = addSpaceBetweenString(str, i)
 					i++
 				}
@@ -383,7 +388,6 @@ func format(str string) string {
 
 func process(s string) string {
 	var out string
-	var out1 string
 
 	if len(s) == 0 {
 		fmt.Println("Error: Empty file")
@@ -392,25 +396,26 @@ func process(s string) string {
 
 	output := RemSpace(s)
 	output = format(output)
-	// output = fixQuotes(output)
+	output = fixQuotes(output)
 	output = puncCheck(output)
 	output = grammarCheck(output)
 
 	out += convert(output, out, 0)
 	// out = puncCheck(out)
 	out = fixQuotes(out)
-	out1 += convert(out, out1, 0)
+	out = RemSpace(out)
 
-	if len(out1) > 0 && out1[len(out1)-1] == ' ' {
-		out1 = RemoveStringElem(out1, len(out1)-1)
+
+	if len(out) > 0 && out[len(out)-1] == ' ' {
+		out = RemoveStringElem(out, len(out)-1)
 	}
-	if len(out1) > 0 && out1[0] == ' ' {
-		out1 = RemoveStringElem(out1, 0)
+	if len(out) > 0 && out[0] == ' ' {
+		out = RemoveStringElem(out, 0)
 	}
 
 	*results = ""
 
-	return out1
+	return out
 }
 
 func IsBracket(r rune) bool {

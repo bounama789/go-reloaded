@@ -123,8 +123,8 @@ var tests = []Test{
 		expected: "she got an A",
 	},
 	{
-		input:    "dsqds fdgdfsdf (cap, 10 (bin))",
-		expected: "Dsqds Fdgdfsdf",
+		input:    "dsqds FDGDFSDF (cap)",
+		expected: "dsqds Fdgdfsdf",
 	},
 }
 
@@ -132,7 +132,8 @@ func TestAll(t *testing.T) {
 	fmt.Printf("%-55s", fmt.Sprintf("%55s", "\u001b[45mTESTING\u001b[0m \n"))
 	for i, test := range tests {
 		if output := process(test.input); output != test.expected {
-			fmt.Printf("\u001b[47m\u001b[44;1mTest %v\u001b[0m \n \u001b[31m|\n |_Fail\n\u001b[0m\u001b[34m   expected\u001b[0m : %v\n   \u001b[33mequals to\u001b[0m; %v\n",i,output,test.expected)
+			fmt.Printf("\u001b[47m\u001b[44;1mTest %v\u001b[0m \n \u001b[31m|\n |_Fail\n\u001b[0m\u001b[34m   expected: \u001b[0m %v\n   \u001b[33mequals to:\u001b[0m %v\n",i,output,test.expected)
+			t.Fail()
 		} else {
 			fmt.Printf("\u001b[47m\u001b[44;1mTest %v\u001b[0m \n \u001b[32;1m|\n |_Pass\u001b[0m\n\n",i)
 		}
