@@ -92,7 +92,7 @@ func getOption(s string, begin int) (string, string, int, int) {
 			break
 		}
 	}
-	if !isIn(options,option) {
+	if !isIn(options, option) {
 		return *results, "", b, nword
 
 	}
@@ -167,6 +167,7 @@ func correct(text string, option string, idx []int) string {
 			fmt.Printf("Cannot convert %s (not an hexadecimal number) to decimal \n", word)
 			os.Exit(1)
 		}
+		
 		s := strconv.FormatInt(w, 10)
 		text = text[:beg] + s + text[end+1:]
 	}
@@ -215,7 +216,7 @@ func isPunctuation(val rune) bool {
 
 func isAlpha(s string) bool {
 	for i := range s {
-		if( s[i] < 'a' && s[i] > 'z') ||( s[i] < 'A' && s[i] > 'Z') ||( s[i] < '0' && s[i] > '9') || s[i] == ' ' || isQuote(rune(s[i])) {
+		if (s[i] < 'a' && s[i] > 'z') || (s[i] < 'A' && s[i] > 'Z') || (s[i] < '0' && s[i] > '9') || s[i] == ' ' || isQuote(rune(s[i])) {
 			return false
 		}
 	}
@@ -235,7 +236,7 @@ func puncCheck(content string) string {
 	case 1:
 		content = addSpaceBetweenString(content, idxError)
 	}
-	content = fixQuotes(content)
+	//content = fixQuotes(content)
 	return puncCheck(content)
 }
 
@@ -306,54 +307,6 @@ func isIn(arr []string, val string) bool {
 	return false
 }
 
-func fixQuotes(str string) string {
-	inQuote := false
-	var last, next rune
-	if len(str) > 0 {
-		if isQuote(rune(str[0])) {
-			inQuote = true
-			if str[1] == ' ' {
-				str = RemoveStringElem(str, 1)
-			}
-		}
-		if isQuote(rune(str[len(str)-1])) && str[len(str)-2] == ' ' {
-			str = RemoveStringElem(str, len(str)-2)
-		}
-		for i := 0; i < len(str); i++ {
-			if i > 0 && i < len(str)-1 {
-				last = rune(str[i-1])
-				next = rune(str[i+1])
-			}
-			if isPunctuation(rune(str[i])) {
-				inQuote = false
-			}
-			if isQuote(rune(str[i])) && (!isAlpha(string(last)) || !isAlpha(string(next))) {
-				if !inQuote {
-					inQuote = true
-					if str[i-1] != ' ' {
-						str = addSpaceBetweenString(str, i-1)
-						i++
-					}
-					if i < len(str)-1 && str[i+1] == ' ' {
-						str = RemoveStringElem(str, i+1)
-					}
-				} else {
-					inQuote = false
-					if str[i-1] == ' ' {
-						str = RemoveStringElem(str, i-1)
-						i--
-					}
-					if i < len(str)-1 && str[i+1] != ' ' {
-						str = addSpaceBetweenString(str, i)
-					}
-				}
-			}
-
-		}
-	}
-	return str
-}
-
 func isQuote(r rune) bool {
 	return r == '"' || r == '\''
 }
@@ -396,15 +349,14 @@ func process(s string) string {
 
 	output := RemSpace(s)
 	output = format(output)
-	output = fixQuotes(output)
+	// output = fixQuotes(output)
 	output = puncCheck(output)
 	output = grammarCheck(output)
 
 	out += convert(output, out, 0)
 	// out = puncCheck(out)
-	out = fixQuotes(out)
+	out = quoteCheck(out)
 	out = RemSpace(out)
-
 
 	if len(out) > 0 && out[len(out)-1] == ' ' {
 		out = RemoveStringElem(out, len(out)-1)
@@ -447,4 +399,82 @@ func RemSpace(s string) string {
 
 	s = RemoveStringElem(s, idx)
 	return RemSpace(s)
+}
+
+func quoteCheck(s string) string {
+	var quoteType rune
+	squote := '\''
+	dquote := '"'
+	var qa, qb = true, true
+	if s[0] == byte(squote) || s[0] == byte(dquote) {
+		if s[1] == ' ' {
+			s = RemoveStringElem(s, 1)
+		}
+		qa = s[0] != byte(squote)
+		qb = s[0] != byte(dquote)
+	}
+	for i := 0; i < len(s); i++ {
+		if i > 0 && i < len(s)-1 {
+			if isQuote(rune(s[i])) {
+				if isAlpha(string(s[i-1])) && isAlpha(string(s[i+1])) {
+					if isPunctuation(rune(s[i+1])) || isPunctuation(rune(s[i-1])) {
+						qa = byte(quoteType) != byte(squote)
+						qb = byte(quoteType) != byte(dquote)
+					}
+					continue
+				}
+				quoteType = rune(s[i])
+				switch quoteType {
+				case squote:
+					if qa {
+						if !isQuote(rune(s[i-1])) && s[i-1] != ' ' {
+							s = addSpaceBetweenString(s, i-1)
+							i++
+						}
+						if s[i+1] == ' ' {
+							s = RemoveStringElem(s, i+1)
+
+						}
+						qa = false
+					} else {
+						if s[i-1] == ' ' {
+
+							s = RemoveStringElem(s, i-1)
+							i--
+						}
+						if s[i+1] != ' ' && !isQuote(rune(s[i+1])) {
+							s = addSpaceBetweenString(s, i+1)
+
+						}
+						qa = true
+					}
+					quoteType = 0
+				case dquote:
+					if qb {
+						if !isQuote(rune(s[i-1])) && s[i-1] != ' ' {
+							s = addSpaceBetweenString(s, i-1)
+
+						}
+						if s[i+1] == ' ' {
+							s = RemoveStringElem(s, i+1)
+
+						}
+						qb = false
+					} else {
+						if s[i-1] == ' ' {
+							s = RemoveStringElem(s, i-1)
+							i--
+						}
+						if s[i+1] != ' ' && !isQuote(rune(s[i+1])) {
+							s = addSpaceBetweenString(s, i+1)
+
+						}
+						qb = true
+					}
+					quoteType = 0
+				}
+			}
+		}
+	}
+	return s
 }
