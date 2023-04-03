@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"goreloaded/lib"
 	"testing"
 )
 
@@ -200,7 +201,7 @@ func TestGoReloaded(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		if output := process(test.input); output != test.expected {
+		if output := lib.Process(test.input); output != test.expected {
 			t.Error("❌ Test Failed: ", test.name, "\nInputted: ", test.input, "\nExpected: ", test.expected, "\nReceived: ", output)
 		} else {
 			fmt.Println("✅ Test Succeeded ", test.name)
